@@ -18,7 +18,7 @@ async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
   );
   const msg: sendgrid.MailDataRequired = {
     to: email,
-    from: 'nicolas.burnett@acmutd.co',
+    from: process.env.SENDGRID_SENDER as string,
     subject: 'Axxess Hackathon QR-code ID',
     text: "Hello,\n\nThank you for registering for the Axxess hackathon at UTD! Below is your unique QR-code for scan-ins such as check-in, events, food, and more!\n\nWe can't wait for you to join us. Happy hacking!\n\nBest,\nAxxess",
     attachments: [
