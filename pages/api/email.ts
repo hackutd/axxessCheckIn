@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import sendgrid from '@sendgrid/mail';
 import qr from 'qrcode';
+
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY ?? '');
 
 async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
@@ -11,21 +12,24 @@ async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).send('Invalid email');
   }
 
-  const qrcode = await qr.toDataURL(email);
-  const msg = {
+  const qrcode = (await qr.toDataURL(email)).replace(
+    'data:image/png;base64,',
+    ''
+  );
+  const msg: sendgrid.MailDataRequired = {
     to: email,
     from: 'nicolas.burnett@acmutd.co',
     subject: 'Axxess Hackathon QR-code ID',
     text: "Hello,\n\nThank you for registering for the Axxess hackathon at UTD! Below is your unique QR-code for scan-ins such as check-in, events, food, and more!\n\nWe can't wait for you to join us. Happy hacking!\n\nBest,\nAxxess",
-    html: `<img src=${qrcode} width="150" height="150" />`,
+    attachments: [
+      {
+        content: qrcode,
+        filename: 'qrcode.png',
+      },
+    ],
   };
-  sendgrid
-    .send(msg)
-    .then(() => res.status(200).json({}))
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({});
-    });
+  sendgrid.send(msg).catch((err) => console.log(err.response.body.errors));
+  res.status(200).json({});
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
