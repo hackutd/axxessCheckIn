@@ -58,18 +58,12 @@ const Home: NextPage = () => {
   };
 
   const handleScan = async (data: string) => {
-    if (!data.startsWith('hack:')) {
-      setScanData(data as any);
-      setSuccess(successStrings.invalidFormat as any);
-      return;
-    }
     const query = new URL(`http://localhost:3000/api/scan`);
-    query.searchParams.append('id', data.replaceAll('hack:', ''));
     fetch(query.toString().replaceAll('http://localhost:3000', ''), {
       mode: 'cors',
       method: 'POST',
       body: JSON.stringify({
-        id: data.replaceAll('hack:', ''),
+        id: data,
         scan: currentScan.name,
       }),
     })
@@ -192,6 +186,11 @@ const Home: NextPage = () => {
   useEffect(() => {
     fetchScanTypes();
   });
+
+  console.log('======');
+  console.log(currentScan);
+  console.log(scanData);
+  console.log('======');
 
   return (
     <div className="relative flex flex-col flex-grow">

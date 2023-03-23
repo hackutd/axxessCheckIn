@@ -99,6 +99,7 @@ export default function Reader({ callback, width, height }: QRCodeReaderProps) {
         video.play();
         requestAnimationFrame(tick);
       });
+  console.log(videoReady);
   return (
     <div className="flex items-center justify-center">
       {videoReady && !paused ? (
