@@ -6,33 +6,38 @@ import qr from 'qrcode';
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY ?? '');
 
 async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
-  const { email } = req.body;
+  const { emails } = JSON.parse(req.body);
 
-  if (!email) {
-    return res.status(400).send('Invalid email');
+  if (!emails) {
+    return res.status(400).send('Invalid email list');
   }
 
-  const qrcode = (await qr.toDataURL(email)).replace(
-    'data:image/png;base64,',
-    ''
-  );
-  const msg: sendgrid.MailDataRequired = {
-    to: email,
-    from: process.env.SENDGRID_SENDER as string,
-    subject: 'Axxess Hackathon QR Code',
-    text: "Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR-code for check-in, swag, and food! We recommend arriving at 8:45am to get in line for check-in as space is limited.\n\nYou'll recieve an email in a few days (Wednesday or Thursday) with all the Axxess Hackathon event details.\n\nHackathon check-in begins at April 1st, 9 a.m. CDT.\n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nIf you have any questions or concerns, please don't hesitate to reach out to us at hackathon@axxess.com.\n\nThank you again for registering for the Axxess Hackathon. We can't wait to see you there!\n\nBest regards,\n\nThe Axxess Hackathon Team",
-    attachments: [
-      {
-        content: qrcode,
-        filename: 'qrcode.png',
-      },
-    ],
-  };
-  sendgrid.send(msg).catch((err) => console.log(err.response.body.errors));
+  emails.forEach(async (email) => {
+    const qrcode = (await qr.toDataURL(email)).replace(
+      'data:image/png;base64,',
+      ''
+    );
+    const msg: sendgrid.MailDataRequired = {
+      to: email,
+      from: process.env.SENDGRID_SENDER as string,
+      subject: 'Axxess Hackathon QR Code',
+      text: "Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR-code for check-in, swag, and food! We recommend arriving at 8:45am to get in line for check-in as space is limited.\n\nYou'll recieve an email in a few days (Wednesday or Thursday) with all the Axxess Hackathon event details.\n\nHackathon check-in begins at April 1st, 9 a.m. CDT.\n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nIf you have any questions or concerns, please don't hesitate to reach out to us at hackathon@axxess.com.\n\nThank you again for registering for the Axxess Hackathon. We can't wait to see you there!\n\nBest regards,\n\nThe Axxess Hackathon Team",
+      attachments: [
+        {
+          content: qrcode,
+          filename: 'qrcode.png',
+        },
+      ],
+    };
+    sendgrid.send(msg).catch((err) => console.log(err.response.body.errors));
+  });
   res.status(200).json({});
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method === 'POST') {
     await sendEmail(req, res);
   } else {
