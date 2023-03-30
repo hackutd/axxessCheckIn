@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import LoadIcon from '../components/LoadIcon';
 import ScanType from '../components/ScanType';
+import { useRouter } from 'next/router';
 
 const successStrings = {
   claimed: 'Scan claimed...',
@@ -56,6 +57,8 @@ const Home: NextPage = () => {
     setCurrentScan(data);
     setCurrentScanIdx(idx);
   };
+
+  const router = useRouter();
 
   const handleScan = async (data: string) => {
     const query = new URL(`http://localhost:3000/api/scan`);
@@ -475,7 +478,7 @@ const Home: NextPage = () => {
               !editScan &&
               !showDeleteScanDialog &&
               !startScan && (
-                <div className="mx-auto my-5">
+                <div className="mx-auto my-5 flex flex-col items-center">
                   <button
                     className="bg-green-300 p-3 rounded-lg font-bold hover:bg-green-200"
                     onClick={() => {
@@ -483,6 +486,22 @@ const Home: NextPage = () => {
                     }}
                   >
                     Add a new Scan
+                  </button>
+                  <button
+                    className="bg-blue-300 p-3 rounded-lg font-bold hover:bg-blue-200 block mt-4"
+                    onClick={() => {
+                      router.push('/new');
+                    }}
+                  >
+                    REGISTER WALK-INS
+                  </button>
+                  <button
+                    className="bg-red-300 p-3 rounded-lg font-bold hover:bg-red-200 block mt-4"
+                    onClick={() => {
+                      router.push('/stats');
+                    }}
+                  >
+                    Stats
                   </button>
                 </div>
               )}
