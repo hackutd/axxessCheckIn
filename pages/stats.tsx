@@ -30,8 +30,8 @@ const StatsPage: NextPage = () => {
       <div className="w-full mx-auto flex flex-col gap-y-6">
         <div className="flex-col gap-y-3 w-full md:flex-row flex justify-around gap-x-2">
           {statsData &&
-            Object.keys(statsData).map((scan) => (
-              <AdminStatsCard title={scan} value={statsData[scan]} />
+            Object.keys(statsData).map((scan, i) => (
+              <AdminStatsCard key={i} title={scan} value={statsData[scan]} />
             ))}
         </div>
       </div>
