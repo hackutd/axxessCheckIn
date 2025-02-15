@@ -30,7 +30,7 @@ function initializeFirebase() {
       credential: admin.credential.cert({
         projectId: process.env.GCP_PROJECT_ID,
         clientEmail: process.env.GCP_EMAIL,
-        privateKey: process.env.GCP_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        privateKey:  Buffer.from(process.env.GCP_PRIVATE_KEY, 'base64').toString('utf-8'),
       }),
     });
   }
