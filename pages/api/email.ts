@@ -2,55 +2,78 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import sendgrid from '@sendgrid/mail';
 import qr from 'qrcode';
-import { auth, firestore } from 'firebase-admin';
+import { firestore } from 'firebase-admin';
 import initializeApi from '../../lib/admin/init';
 
-sendgrid.setApiKey(process.env.SENDGRID_API_KEY ?? '');
+// Ensure SendGrid API key is set
+if (!process.env.SENDGRID_API_KEY) {
+  throw new Error('SENDGRID_API_KEY is not set');
+}
+sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
 
 initializeApi();
-
-const REGISTRATION_COLLECTION = '/registrations';
 const db = firestore();
+const REGISTRATION_COLLECTION = 'registrations'; 
 
-async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
-  // Make sure you set the Content-Type header to application/json
-  const { emails } = req.body;
+async function sendEmailsToRegisteredUsers(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    console.log("Fetching emails from Firestore...");
 
-  if (!emails) {
-    return res.status(400).send('Invalid email list');
-  }
-  emails.forEach(async (email) => {
-    const qrcode = (await qr.toDataURL(email)).replace(
-      'data:image/png;base64,',
-      ''
+    // **1. Fetch all registered emails from Firestore**
+    const snapshot = await db.collection(REGISTRATION_COLLECTION).get();
+    
+    if (snapshot.empty) {
+      console.error("No registered emails found in Firestore.");
+      return res.status(400).json({ error: "No registered emails found" });
+    }
+
+    // **Extract document IDs (which are emails)**
+    const emails = snapshot.docs.map((doc) => doc.id);
+    console.log("Emails retrieved from Firestore:", emails);
+
+    // **2. Send emails to all users**
+    await Promise.all(
+      emails.map(async (email) => {
+        try {
+          // Generate QR Code
+          const qrcode = (await qr.toDataURL(email)).replace('data:image/png;base64,', '');
+
+          // Email details
+          const msg: sendgrid.MailDataRequired = {
+            to: email,
+            from: process.env.SENDGRID_SENDER as string,
+            subject: 'Axxess Hackathon QR Code',
+            text: `Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR code for check-in, swag, and food! We recommend arriving at 8:45am to get in line for check-in as space is limited.\n\nYou'll receive an email soon with all the event details.\n\nHackathon check-in begins on April 1st, 9 a.m. CDT.\n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nIf you have any questions, please reach out to hackathon@axxess.com.\n\nBest regards,\n\nThe Axxess Hackathon Team`,
+            attachments: [
+              {
+                content: qrcode,
+                filename: 'qrcode.png',
+                type: 'image/png',
+                disposition: 'attachment',
+              },
+            ],
+          };
+
+          // Send email
+          await sendgrid.send(msg);
+          console.log(`Email sent`);
+        } catch (error) {
+          console.error(`Failed to send email:`, error.response?.body?.errors || error);
+        }
+      })
     );
-    const msg: sendgrid.MailDataRequired = {
-      to: email,
-      from: process.env.SENDGRID_SENDER as string,
-      subject: 'Axxess Hackathon QR Code',
-      text: "Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR-code for check-in, swag, and food! We recommend arriving at 8:45am to get in line for check-in as space is limited.\n\nYou'll recieve an email soon (Wednesday or Thursday) with all the Axxess Hackathon event details.\n\nHackathon check-in begins at April 1st, 9 a.m. CDT.\n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nIf you have any questions or concerns, please don't hesitate to reach out to us at hackathon@axxess.com.\n\nThank you again for registering for the Axxess Hackathon. We can't wait to see you there!\n\nBest regards,\n\nThe Axxess Hackathon Team",
-      attachments: [
-        {
-          content: qrcode,
-          filename: 'qrcode.png',
-        },
-      ],
-    };
-    sendgrid.send(msg).catch((err) => {
-      console.log(email);
-      console.log(err.response.body.errors);
-    });
-  });
-  res.status(200).json({});
+
+    res.status(200).json({ success: true, message: "Emails sent successfully" });
+  } catch (error) {
+    console.error("Error retrieving registrations or sending emails:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+// **API Route Handler**
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    await sendEmail(req, res);
-  } else {
-    res.status(405).json({});
+    return sendEmailsToRegisteredUsers(req, res);
   }
+  return res.status(405).json({ error: "Method not allowed" });
 }
