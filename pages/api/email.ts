@@ -5,7 +5,6 @@ import qr from 'qrcode';
 import { firestore } from 'firebase-admin';
 import initializeApi from '../../lib/admin/init';
 
-// Ensure SendGrid API key is set
 if (!process.env.SENDGRID_API_KEY) {
   throw new Error('SENDGRID_API_KEY is not set');
 }
@@ -77,3 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   return res.status(405).json({ error: "Method not allowed" });
 }
+
+//HOW TO RUN THIS SCRIPT
+//GO TO THE TERMINAL AND RUN THE FOLLOWING COMMAND
+// curl -X POST http://localhost:3000/api/email -H "Content-Type: application/json"
