@@ -96,6 +96,9 @@ const Home: NextPage = () => {
       const res = await fetch('/api/scan/update', {
         mode: 'cors',
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'  
+        },
         body: JSON.stringify({
           scanData: updatedScanData,
         }),
@@ -146,12 +149,16 @@ const Home: NextPage = () => {
       const res = await fetch('/api/scan/delete', {
         mode: 'cors',
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'  
+        },
         body: JSON.stringify({
-          scanDasta: currentScan,
+          scanData: currentScan,
         }),
       });
       const data = await res.json();
       setShowDeleteScanDialog(false);
+      
       if (res.status >= 400) {
         alert(data.msg);
       } else {
@@ -164,6 +171,7 @@ const Home: NextPage = () => {
       }
     } catch (error) {
       console.log(error);
+      alert('An error occurred while deleting the scan');
     }
   };
 
@@ -206,7 +214,7 @@ const Home: NextPage = () => {
           <div className="flex items-center justify-center min-h-screen">
             <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
 
-            <div className="rounded-2xl relative bg-white flex flex-col ljustify-between p-4 max-w-sm mx-auto">
+            <div className="rounded-2xl relative bg-black flex flex-col ljustify-between p-4 max-w-sm mx-auto">
               <Dialog.Title>
                 Delete <span className="font-bold">{currentScan.name}</span>
               </Dialog.Title>
