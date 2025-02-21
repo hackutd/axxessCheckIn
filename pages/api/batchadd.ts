@@ -36,3 +36,10 @@ export default async function handler(
     res.status(405).json({});
   }
 }
+
+//HOW TO RUN THIS SCRIPT
+//GO TO THE TERMINAL AND RUN THE FOLLOWING COMMAND
+// curl -X POST http://localhost:3000/api/batchadd \
+// -H "Content-Type: application/json" \
+// -d '{"emails": ["user@example.com", "test@example.com"]}'
+//Just use ChatGPT to format to your needs lmaooooo
