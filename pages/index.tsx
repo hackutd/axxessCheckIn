@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import Reader from '../components/Reader';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Dialog } from '@headlessui/react';
 import LoadIcon from '../components/LoadIcon';
 import ScanType from '../components/ScanType';
@@ -23,6 +23,14 @@ function getSuccessColor(success: string) {
     return '#5fde05';
   }
   return '#ff0000';
+}
+
+function debounce(func: Function, wait: number) {
+  let timeout: NodeJS.Timeout;
+  return function (...args: any[]) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
 }
 
 const Home: NextPage = () => {
@@ -53,6 +61,9 @@ const Home: NextPage = () => {
 
   const [showDeleteScanDialog, setShowDeleteScanDialog] = useState(false);
 
+  // Flag to indicate if a scan is in progress
+  const [isScanning, setIsScanning] = useState(false);
+
   const handleScanClick = (data: any, idx: any) => {
     setCurrentScan(data);
     setCurrentScanIdx(idx);
@@ -60,35 +71,44 @@ const Home: NextPage = () => {
 
   const router = useRouter();
 
-  const handleScan = async (data: string) => {
-    const query = new URL(`http://localhost:3000/api/scan`);
-    fetch(query.toString().replaceAll('http://localhost:3000', ''), {
-      mode: 'cors',
-      method: 'POST',
-      body: JSON.stringify({
-        id: data,
-        scan: currentScan.name,
-      }),
-    })
-      .then(async (result) => {
-        setScanData(data);
-        if (result.status === 404) {
-          return setSuccess(successStrings.invalidUser);
-        } else if (result.status === 201) {
-          return setSuccess(successStrings.alreadyClaimed);
-        } else if (result.status === 403) {
-          return setSuccess(successStrings.notCheckedIn);
-        } else if (result.status !== 200) {
-          return setSuccess(successStrings.unexpectedError);
-        }
-        setSuccess(successStrings.claimed);
+  const handleScan = useCallback(
+    debounce(async (data: string) => {
+      if (isScanning) return; // Prevent multiple scans
+      setIsScanning(true); // Set scanning flag
+
+      const query = new URL(`http://localhost:3000/api/scan`);
+      await fetch(query.toString().replaceAll('http://localhost:3000', ''), {
+        mode: 'cors',
+        method: 'POST',
+        body: JSON.stringify({
+          id: data,
+          scan: currentScan.name,
+        }),
       })
-      .catch((err) => {
-        console.log(err);
-        setScanData(data);
-        setSuccess('Unexpected error...');
-      });
-  };
+        .then(async (result) => {
+          setScanData(data);
+          if (result.status === 404) {
+            return setSuccess(successStrings.invalidUser);
+          } else if (result.status === 201) {
+            return setSuccess(successStrings.alreadyClaimed);
+          } else if (result.status === 403) {
+            return setSuccess(successStrings.notCheckedIn);
+          } else if (result.status !== 200) {
+            return setSuccess(successStrings.unexpectedError);
+          }
+          setSuccess(successStrings.claimed);
+        })
+        .catch((err) => {
+          console.log(err);
+          setScanData(data);
+          setSuccess('Unexpected error...');
+        })
+        .finally(() => {
+          setIsScanning(false); // Reset scanning flag
+        });
+    }, 500),
+    [isScanning, currentScan]
+  );
 
   const updateScan = async () => {
     const updatedScanData = { ...currentEditScan };
