@@ -37,7 +37,7 @@ async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
     to: email,
     from: process.env.SENDGRID_SENDER as string,
     subject: "Axxess Hackathon QR Code",
-    text: `Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR code for check-in, swag, and food! \n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nPlease also join the Discord to stay up to date with the event: https://discord.gg/mcsgb4Vj \n\nIf you have any questions, please reach out to hackathon@axxess.com.\n\nBest regards,\n\nThe Axxess Hackathon Team`,
+    text: `Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR code for check-in, swag, and food! \n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nPlease also join the Discord to stay up to date with the event: https://discord.gg/U24FB4JYxK \n\nIf you have any questions, please reach out to axxess@acmutd.com.\n\nBest regards,\n\nThe Axxess Hackathon Team`,
     attachments: [
       {
         content: qrcode,
