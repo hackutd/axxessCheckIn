@@ -37,7 +37,7 @@ async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
     to: email,
     from: process.env.SENDGRID_SENDER as string,
     subject: "Axxess Hackathon QR Code",
-    text: `Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR code for check-in, swag, and food! \n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nPlease also join the Discord to stay up to date with the event: https://discord.gg/mcsgb4Vj \n\nIf you have any questions, please reach out to hackathon@axxess.com.\n\nBest regards,\n\nThe Axxess Hackathon Team`,
+    text: `Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR code for check-in, swag, and food! \n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nPlease also join the Discord to stay up to date with the event: https://discord.gg/U24FB4JYxK \n\nIf you have any questions, please reach out to axxess@acmutd.com.\n\nBest regards,\n\nThe Axxess Hackathon Team`,
     attachments: [
       {
         content: qrcode,
@@ -45,8 +45,18 @@ async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
       },
     ],
   };
-  sendgrid.send(msg).catch((err) => console.log(err.response.body.errors));
-  res.status(200).json({});
+  
+  try {
+    await sendgrid.send(msg);
+    console.log(`Email sent successfully to ${email}`);
+    res.status(200).json({ message: "Email sent successfully" });
+  } catch (err: any) {
+    console.error("SendGrid Error:", err.response?.body?.errors || err.message);
+    return res.status(500).json({ 
+      error: "Failed to send email", 
+      details: err.response?.body?.errors || err.message 
+    });
+  }
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
