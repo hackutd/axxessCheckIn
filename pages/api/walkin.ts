@@ -45,8 +45,18 @@ async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
       },
     ],
   };
-  sendgrid.send(msg).catch((err) => console.log(err.response.body.errors));
-  res.status(200).json({});
+  
+  try {
+    await sendgrid.send(msg);
+    console.log(`Email sent successfully to ${email}`);
+    res.status(200).json({ message: "Email sent successfully" });
+  } catch (err: any) {
+    console.error("SendGrid Error:", err.response?.body?.errors || err.message);
+    return res.status(500).json({ 
+      error: "Failed to send email", 
+      details: err.response?.body?.errors || err.message 
+    });
+  }
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
