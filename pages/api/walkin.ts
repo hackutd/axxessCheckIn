@@ -42,8 +42,15 @@ async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
       {
         content: qrcode,
         filename: "qrcode.png",
+        type: "image/png",
+        disposition: "attachment",
       },
     ],
+    trackingSettings: {
+      clickTracking: {
+        enable: false,
+      },
+    },
   };
   
   try {
