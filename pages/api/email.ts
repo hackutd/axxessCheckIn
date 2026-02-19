@@ -42,7 +42,7 @@ async function sendEmailsToRegisteredUsers(req: NextApiRequest, res: NextApiResp
             to: email,
             from: process.env.SENDGRID_SENDER as string,
             subject: 'Axxess Hackathon QR Code',
-            text: `Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR code for check-in, swag, and food! We recommend arriving at 8:30am to get in line for check-in as space is limited.\n\nHackathon check-in begins on February 22nd, 9 a.m. CDT.\n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nPlease also join the Discord to stay up to date with the event: https://discord.gg/mcsgb4Vj \n\nIf you have any questions, please reach out to hackathon@axxess.com.\n\nBest regards,\n\nThe Axxess Hackathon Team`,
+            text: `Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR code for check-in, swag, and food! Check-in is from 9 am to 11 am. We recommend arriving between 9 and 10 am to get in line for check-in. Walk-ins begin at 10 pm so we cannot guarantee you a spot even if you have a QR code. \n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nParking passes can be found [here](https://drive.google.com/file/d/14RpDz2ZKIBwtDAVdLQ2hJIlNWgeSscwS/view?usp=sharing). Print them out and put them on your dashboard. Please also join the Discord to stay up to date with the event: https://discord.gg/U24FB4JYxK \n\nIf you have any questions, please reach out to axxess@acmutd.co.\n\nBest regards,\n\nThe Axxess Hackathon Team`,
             attachments: [
               {
                 content: qrcode,
