@@ -13,46 +13,66 @@ const REGISTRATION_COLLECTION = "/registrations";
 const db = firestore();
 
 async function sendEmail(req: NextApiRequest, res: NextApiResponse) {
-  const { email } = req.body;
+    const { email } = req.body;
 
-  if (!email) {
-    return res.status(400).send("Invalid email");
-  }
+    if (!email) {
+        return res.status(400).send("Invalid email");
+    }
 
-  // Make sure user is not already in the collection
-  const snapshot = await db
-    .collection(REGISTRATION_COLLECTION)
-    .doc(email)
-    .get();
-  if (snapshot.exists) return res.status(400).send("Email already exists");
+    // Make sure user is not already in the collection
+    const snapshot = await db
+        .collection(REGISTRATION_COLLECTION)
+        .doc(email)
+        .get();
+    if (snapshot.exists) return res.status(400).send("Email already exists");
 
-  // Create user in the collection
-  await db.collection(REGISTRATION_COLLECTION).doc(email).set({});
+    // Create user in the collection
+    await db.collection(REGISTRATION_COLLECTION).doc(email).set({});
 
-  const qrcode = (await qr.toDataURL(email)).replace(
-    "data:image/png;base64,",
-    ""
-  );
-  const msg: sendgrid.MailDataRequired = {
-    to: email,
-    from: process.env.SENDGRID_SENDER as string,
-    subject: "Axxess Hackathon QR Code",
-    text: `Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR code for check-in, swag, and food! \n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nPlease also join the Discord to stay up to date with the event: https://discord.gg/mcsgb4Vj \n\nIf you have any questions, please reach out to hackathon@axxess.com.\n\nBest regards,\n\nThe Axxess Hackathon Team`,
-    attachments: [
-      {
-        content: qrcode,
-        filename: "qrcode.png",
-      },
-    ],
-  };
-  sendgrid.send(msg).catch((err) => console.log(err.response.body.errors));
-  res.status(200).json({});
+    const qrcode = (await qr.toDataURL(email)).replace(
+        "data:image/png;base64,",
+        "",
+    );
+    const msg: sendgrid.MailDataRequired = {
+        to: email,
+        from: process.env.SENDGRID_SENDER as string,
+        subject: "Axxess Hackathon QR Code",
+        text: `Hello,\n\nThank you for registering for the Axxess Hackathon. Below is your unique QR code for swag and food!\n\nLocation:\nECSW 1.100 Axxess Atrium\n800 W. Campbell Road, Richardson, Texas 75080\n\nParking passes can be found here:\nhttps://tinyurl.com/axxess-parking\n\nPrint them out and put them on your dashboard or ask an organizer for one at Check-In. Please also join the Discord to stay up to date with the event:\nhttps://tinyurl.com/axxess-discord\n\nIf you have any questions, please reach out to axxess@acmutd.co.\n\nBest regards,\n\nThe Axxess Hackathon Team`,
+        attachments: [
+            {
+                content: qrcode,
+                filename: "qrcode.png",
+                type: "image/png",
+                disposition: "attachment",
+            },
+        ],
+        trackingSettings: {
+            clickTracking: {
+                enable: false,
+            },
+        },
+    };
+
+    try {
+        await sendgrid.send(msg);
+        console.log(`Email sent successfully to ${email}`);
+        res.status(200).json({ message: "Email sent successfully" });
+    } catch (err: any) {
+        console.error(
+            "SendGrid Error:",
+            err.response?.body?.errors || err.message,
+        );
+        return res.status(500).json({
+            error: "Failed to send email",
+            details: err.response?.body?.errors || err.message,
+        });
+    }
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "POST") {
-    sendEmail(req, res);
-  } else {
-    res.status(405).json({});
-  }
+    if (req.method === "POST") {
+        sendEmail(req, res);
+    } else {
+        res.status(405).json({});
+    }
 }
